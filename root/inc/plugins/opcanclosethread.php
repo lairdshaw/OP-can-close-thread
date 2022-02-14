@@ -86,7 +86,7 @@ function opcanclosethread_info() {
 		'description'   => $lang->opcct_desc,
 		'author'        => 'Laird Shaw',
 		'authorsite'    => 'https://creativeandcritical.net/',
-		'version'       => '1.1.0',
+		'version'       => '1.1.1',
 		'codename'      => 'opcanclosethread',
 		'compatibility' => '18*'
 	);
@@ -296,8 +296,8 @@ function opcanclosethread_hookin__newthread_end() {
 }
 
 // Show the "Close Thread" checkbox in the quick reply box when viewing a thread
-// if the current user is the thread's author in a forum stipulated in this
-// plugin's settings.
+// if the current user is the thread's author, and not a moderator, in a forum
+// stipulated in this plugin's settings.
 //
 // Also in that same scenario show the "[Close/Open] Thread" button top and bottom
 // of page beside the "New Reply" button, and restore the "New Reply" button from
@@ -313,13 +313,13 @@ function opcanclosethread_hookin__showthread_end() {
 	    $mybb->user['uid'] == $thread['uid']
 	    &&
 	    $thread['visible'] != -1
+	    &&
+	    !is_moderator($thread['fid'], 'canopenclosethreads')
 	   ) {
 		$lang->load('opcanclosethread');
 		if (($thread['closed'] != 1 || $thread['opcct_closed_by_author'] == 1)
 	            &&
 	            !empty($quickreply)
-	            &&
-	            !is_moderator($thread['fid'], 'canopenclosethreads')
 		   ) {
 			if (!isset($closeoption)) {
 				$closeoption = '';
