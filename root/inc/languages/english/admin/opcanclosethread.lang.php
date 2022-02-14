@@ -13,3 +13,8 @@ $l['opcct_all_patched'] = 'All necessary patches have automatically been applied
 $l['opcct_unwritable' ] = 'The following file(s) is/are not writable by your web server, and patches could not be auto-applied to it/them: {1}. Please grant your web server write permissions on that/those file(s). ';
 $l['opcct_fpcfalse'   ] = 'Whilst the following files(s) seem(s) to be writable by your web server, a return of false was obtained when trying to save it/them: {1}. Please ensure that your web server can write to that/those file(s). ';
 $l['opcct_unpatchable'] = 'Whilst the following file(s) is/are writable by your web server, not all of the patch(es) auto-applied to them succeeded: {1}. Please check that all of the "from" fields of the patch(es) for that/those file(s) has a match in the file(s), and adjust as necessary. ';
+
+$l['opcct_templateset_name'] = 'OP Can Close Thread';
+
+$l['opcct_confirm_uninstall_title'] = 'OP Can Close Thread Uninstallation';
+$l['opcct_confirm_uninstall'      ] = 'Do you wish to delete ALL of this plugin\'s data from the database? Selecting "Yes" executes a full uninstallation suitable for removing the plugin entirely (other than its files). Selecting "No" is suitable for upgrading: it will leave untouched the records of OP-closed threads, so that, should they choose to do so, thread authors can reopen the threads they\'ve closed after the plugin is reinstalled (otherwise, only moderators will be able to reopen those threads).';

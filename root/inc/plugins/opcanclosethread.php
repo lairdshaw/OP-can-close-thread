@@ -86,7 +86,7 @@ function opcanclosethread_info() {
 		'description'   => $lang->opcct_desc,
 		'author'        => 'Laird Shaw',
 		'authorsite'    => 'https://creativeandcritical.net/',
-		'version'       => '1.0.0',
+		'version'       => '1.1.0',
 		'codename'      => 'opcanclosethread',
 		'compatibility' => '18*'
 	);
@@ -123,6 +123,8 @@ function opcanclosethread_info() {
 
 function opcanclosethread_install() {
 	global $db, $lang;
+
+	$lang->load('opcanclosethread');
 
 	$res = $db->query('SELECT MAX(disporder) as max_disporder FROM '.TABLE_PREFIX.'settinggroups');
 	$disporder = intval($db->fetch_field($res, 'max_disporder')) + 1;
@@ -181,10 +183,33 @@ function opcanclosethread_install() {
 	if ($db->field_exists('ba_closed_by_author', 'threads')) {
 		$db->drop_column('threads', 'ba_closed_by_author');
 	}
+
+	// Insert the plugin's templates into the database.
+	$templateset = array(
+		'prefix' => 'opcanclosethread',
+		'title' => $lang->opcct_templateset_name,
+	);
+	$db->insert_query('templategroups', $templateset);
+
+	$tpl = '<form method="post" action="moderation.php?action=opcct_toggle_own_thread_closed&amp;tid={$tid}" style="display: inline;"><input type="hidden" name="my_post_key" value="{$mybb->post_code}" /><input type="submit" name="submit" value="{$caption}" style="padding: 6px 8px 7px 8px; display: inline-block; font-size: 14px; color: #fff; border-radius: 6px; background-color: #2c2c2c; border: 1px solid #2c2c2c; font-family: Tahoma,Verdana,Arial,Sans-Serif; cursor: pointer;" /></form>';
+
+	$db->insert_query('templates', array(
+		'title'    => 'opcanclosethread_openclose_button',
+		'template' => $db->escape_string($tpl),
+		'sid'      => '-2',
+		'version'  => '1',
+		'dateline' => TIME_NOW
+	));
 }
 
 function opcanclosethread_uninstall() {
-	global $db;
+	global $db, $mybb;
+
+	if ($mybb->request_method != 'post') {
+		global $page, $lang;
+		$lang->load('opcanclosethread');
+		$page->output_confirm_action('index.php?module=config-plugins&action=deactivate&uninstall=1&plugin=opcanclosethread', $lang->opcct_confirm_uninstall, $lang->opcct_confirm_uninstall_title);
+	}
 
 	$rebuild_settings = false;
 	$query = $db->simple_select('settinggroups', 'gid', "name = 'opcanclosethread_settings'");
@@ -197,9 +222,15 @@ function opcanclosethread_uninstall() {
 
 	opcct_revert_patches();
 
-	if ($db->field_exists('opcct_closed_by_author', 'threads')) {
-		$db->drop_column('threads', 'opcct_closed_by_author');
+	// Only remove this DB field if the admin has selected NOT to keep data.
+	if (!isset($mybb->input['no'])) {
+		if ($db->field_exists('opcct_closed_by_author', 'threads')) {
+			$db->drop_column('threads', 'opcct_closed_by_author');
+		}
 	}
+
+	$db->delete_query('templates', "title LIKE 'opcanclosethread_%'");
+	$db->delete_query('templategroups', "prefix = 'opcanclosethread'");
 }
 
 function opcanclosethread_is_installed() {
@@ -215,11 +246,13 @@ function opcanclosethread_activate() {
 	find_replace_templatesets('editpost', '(\\{\\$postoptions\\})', '{$postoptions}
 {$modoptions}'
 	);
+	find_replace_templatesets('showthread', '(\\{\\$newreply\\})', '{$opcct_btn}{$newreply}');
 }
 
 function opcanclosethread_deactivate() {
 	require_once MYBB_ROOT.'/inc/adminfunctions_templates.php';
 	find_replace_templatesets('editpost', '(\\r?\\n\\{\\$modoptions\\})', '', 0);
+	find_replace_templatesets('showthread', '(\\{\\$opcct_btn\\})', '', 0);
 }
 
 function opcct_can_edit_thread($thread, $uid = -1) {
@@ -265,29 +298,49 @@ function opcanclosethread_hookin__newthread_end() {
 // Show the "Close Thread" checkbox in the quick reply box when viewing a thread
 // if the current user is the thread's author in a forum stipulated in this
 // plugin's settings.
+//
+// Also in that same scenario show the "[Close/Open] Thread" button top and bottom
+// of page beside the "New Reply" button, and restore the "New Reply" button from
+// its "Thread Closed" variant as necessary.
 function opcanclosethread_hookin__showthread_end() {
-	global $mybb, $templates, $lang, $theme, $moderation_notice, $tid, $reply_subject, $posthash, $last_pid, $page, $collapsedthead, $collapsedimg, $expaltext, $collapsed, $trow, $option_signature, $closeoption, $captcha, $thread, $quickreply;
+	global $mybb, $templates, $lang, $theme, $moderation_notice, $tid, $reply_subject, $posthash, $last_pid, $page, $collapsedthead, $collapsedimg, $expaltext, $collapsed, $trow, $option_signature, $closeoption, $captcha, $thread, $quickreply, $opcct_btn, $newreply;
 
-	if (!empty($quickreply)
-	    &&
-	    ($mybb->settings['opcanclosethread_opclosable_forums'] == -1
+	if (($mybb->settings['opcanclosethread_opclosable_forums'] == -1
 	     ||
 	     in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
 	    )
 	    &&
 	    $mybb->user['uid'] == $thread['uid']
 	    &&
-	    ($thread['closed'] != 1 || $thread['opcct_closed_by_author'] == 1)
-	    &&
-	    !is_moderator($thread['fid'], 'canopenclosethreads')
+	    $thread['visible'] != -1
 	   ) {
-		if (!isset($closeoption)) {
-			$closeoption = '';
-		}
-		$closelinkch = $thread['closed'] ? ' checked="checked"' : '';
+		$lang->load('opcanclosethread');
+		if (($thread['closed'] != 1 || $thread['opcct_closed_by_author'] == 1)
+	            &&
+	            !empty($quickreply)
+	            &&
+	            !is_moderator($thread['fid'], 'canopenclosethreads')
+		   ) {
+			if (!isset($closeoption)) {
+				$closeoption = '';
+			}
+			$closelinkch = $thread['closed'] ? ' checked="checked"' : '';
 
-		eval('$closeoption .= "'.$templates->get('showthread_quickreply_options_close').'";');
-		eval('$quickreply = "'.$templates->get('showthread_quickreply').'";');
+			eval('$closeoption .= "'.$templates->get('showthread_quickreply_options_close').'";');
+			eval('$quickreply = "'.$templates->get('showthread_quickreply').'";');
+		}
+
+		$caption = '';
+		$opcct_btn = '';
+		if ($thread['closed'] == 1 && $thread['opcct_closed_by_author'] == 1) {
+			$caption = $lang->opcct_open_thread;
+		} else if ($thread['closed'] != 1) {
+			$caption = $lang->opcct_close_thread;
+		}
+		if ($caption) {
+			$opcct_btn = eval($templates->render('opcanclosethread_openclose_button'));
+		}
+		$newreply = eval($templates->render('showthread_newreply'));
 	}
 }
 
@@ -366,15 +419,17 @@ function opcanclosethread_hookin__datahandler_post_insert_or_update_post_end($po
 	}
 }
 
-// Not yet used via the user interface, but works if the appropriate URL is
-// entered directly.
-// e.g., https://your.forum/moderation.php?action=opcct_toggle_own_thread_closed&tid=[tid]
+// Toggle the opening/closing of a thread by its author in a forum stipulated
+// in this plugin's settings when submitted by the "[Open/Close] Thread" button
+// (within a "post" form) at the top or bottom of a thread page.
 function opcanclosethread_hookin__moderation_start() {
 	global $mybb, $lang, $db;
 
-	if ($mybb->get_input('action') == 'opcct_toggle_own_thread_closed') {
+	if ($mybb->get_input('action') == 'opcct_toggle_own_thread_closed' && $mybb->request_method == 'post') {
 		$lang->load('moderation');
 		$lang->load('opcanclosethread');
+
+		verify_post_check($mybb->get_input('my_post_key'));
 
 		$tid = $mybb->get_input('tid', MyBB::INPUT_INT);
 

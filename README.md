@@ -1,6 +1,6 @@
 ## About OP Can Close Thread
 
-OP Can Close Thread is a plugin for [MyBB](https://mybb.com/) 1.8. It allows the authors of threads (aka original posters aka OPs) to close and reopen their own threads to new replies in forums stipulated in the plugin's ACP settings. Thread authors do not need to be a moderator to close their own threads in those forums.
+OP Can Close Thread is a plugin for [MyBB](https://mybb.com/) 1.8. It allows the authors of threads (aka original posters aka OPs) to close and reopen their own threads to new replies in forums stipulated in the plugin's ACP settings. Thread authors do not need to be a moderator to close/reopen their own threads in those forums, however, they may not reopen any of their own threads which were closed by a moderator.
 
 ## Requirements
 
@@ -20,11 +20,15 @@ OP Can Close Thread is a plugin for [MyBB](https://mybb.com/) 1.8. It allows the
 
 ## Upgrading
 
-1. Uninstall the plugin via the ACP.
+(Note: order is important here).
 
-2. Download, extract, and copy files as in steps one, two, and three for installing above.
+1. Download, extract, and copy files as in steps one, two, and three for installing above.
+
+2. Uninstall the plugin via the ACP and select "No" when prompted as to whether to delete ALL plugin data.
 
 3. Install+activate the plugin via the ACP.
+
+4. Restore your setting(s) for the plugin, and any edits you'd made to its template(s).
 
 ## Licence
 
