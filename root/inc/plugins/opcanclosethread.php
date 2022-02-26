@@ -61,7 +61,12 @@ const c_opcct_patches = array(
 		'file' => 'newreply.php',
 		'from' => "		error(\$lang->redirect_threadclosed);",
 		'to'   => "/*Begin OPCanClThr patch*/
-		if (!(function_exists('opcct_can_edit_thread') && opcct_can_edit_thread(\$thread, \$mybb->user['uid']))) {
+		if (function_exists('opcct_can_edit_thread')) {
+			if (!opcct_can_edit_thread(\$thread, \$mybb->user['uid'])) {
+				\$lang->load('opcanclosethread');
+				error(\$lang->opcct_err_no_thread_closed_by_op);
+			}
+		} else {
 /*End OPCanClThr patch (other than additional tab on next line) */
 			error(\$lang->redirect_threadclosed);
 /*Begin OPCanClThr patch*/
