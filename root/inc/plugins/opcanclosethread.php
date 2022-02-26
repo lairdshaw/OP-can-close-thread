@@ -92,7 +92,7 @@ function opcanclosethread_info() {
 		'description'   => $lang->opcct_desc,
 		'author'        => 'Laird Shaw',
 		'authorsite'    => 'https://creativeandcritical.net/',
-		'version'       => '1.2.0',
+		'version'       => '1.2.1',
 		'codename'      => 'opcanclosethread',
 		'compatibility' => '18*'
 	);
