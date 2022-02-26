@@ -25,7 +25,8 @@ if (!defined('IN_MYBB')) {
 
 if (!defined('IN_ADMINCP')) {
 	$plugins->add_hook('showthread_end'                    , 'opcanclosethread_hookin__showthread_end'                            );
-	$plugins->add_hook('newthread_end'                     , 'opcanclosethread_hookin__newthread_end'                             );
+	$plugins->add_hook('newthread_end'                     , 'opcanclosethread_hookin__newthread_or_newreply_end'                 );
+	$plugins->add_hook('newreply_end'                      , 'opcanclosethread_hookin__newthread_or_newreply_end'                 );
 	$plugins->add_hook('datahandler_post_insert_thread_end', 'opcanclosethread_hookin__datahandler_post_insert_thread_end'        );
 	$plugins->add_hook('datahandler_post_insert_post_end'  , 'opcanclosethread_hookin__datahandler_post_insert_or_update_post_end');
 	$plugins->add_hook('datahandler_post_update_end'       , 'opcanclosethread_hookin__datahandler_post_insert_or_update_post_end');
@@ -86,7 +87,7 @@ function opcanclosethread_info() {
 		'description'   => $lang->opcct_desc,
 		'author'        => 'Laird Shaw',
 		'authorsite'    => 'https://creativeandcritical.net/',
-		'version'       => '1.1.1',
+		'version'       => '1.1.1-dev-post-release',
 		'codename'      => 'opcanclosethread',
 		'compatibility' => '18*'
 	);
@@ -262,18 +263,20 @@ function opcct_can_edit_thread($thread, $uid = -1) {
 		$uid = $mybb->user['uid'];
 	}
 
-	return $thread['opcct_closed_by_author'] == 1 && $uid == $thread['uid'] && ($mybb->settings['opcanclosethread_opclosable_forums'] == -1 || in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums'])));
+	return $thread['opcct_closed_by_author'] == 1 && $uid == $thread['uid'] && ($mybb->settings['opcanclosethread_opclosable_forums'] == -1 || in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))) && is_member($mybb->settings['opcanclosethread_auth_ugs']);
 }
 
 // Show the "Close Thread" checkbox when starting a thread in a forum stipulated
 // in this plugin's settings.
-function opcanclosethread_hookin__newthread_end() {
-	global $modoptions, $bgcolor, $stickoption, $closeoption, $mybb, $templates, $lang, $fid;
+function opcanclosethread_hookin__newthread_or_newreply_end() {
+	global $modoptions, $bgcolor, $stickoption, $closeoption, $mybb, $templates, $lang, $fid, $thread;
 
 	if (($mybb->settings['opcanclosethread_opclosable_forums'] == -1
 	     ||
 	     in_array($fid, explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
 	    )
+	    &&
+	    is_member($mybb->settings['opcanclosethread_auth_ugs'])
 	    &&
 	    (!is_moderator($fid)
 	     ||
@@ -286,9 +289,11 @@ function opcanclosethread_hookin__newthread_end() {
 		if (!isset($modoptions)) {
 			$modoptions = '';
 		}
-		if (!empty($mybb->input['previewpost'])) {
+		if (!empty($mybb->input['previewpost']) || $mybb->get_input('submit')) {
 			$modopts = $mybb->get_input('modoptions', MyBB::INPUT_ARRAY);
 			$closecheck = !empty($modopts['closethread']) ? 'checked="checked"' : '';
+		} else if (!empty($thread) && $thread['closed']) {
+			$closecheck = 'checked="checked"';
 		}
 		eval('$closeoption .= "'.$templates->get('newreply_modoptions_close').'";');
 		eval('$modoptions = "'.$templates->get('newreply_modoptions').'";');
