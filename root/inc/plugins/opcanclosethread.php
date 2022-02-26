@@ -92,7 +92,7 @@ function opcanclosethread_info() {
 		'description'   => $lang->opcct_desc,
 		'author'        => 'Laird Shaw',
 		'authorsite'    => 'https://creativeandcritical.net/',
-		'version'       => '1.1.1-dev-post-release',
+		'version'       => '1.2.0',
 		'codename'      => 'opcanclosethread',
 		'compatibility' => '18*'
 	);
@@ -152,6 +152,12 @@ function opcanclosethread_install() {
 			'title'       => $lang->opcct_setting_opclosable_forums_title,
 			'description' => $lang->opcct_setting_opclosable_forums_desc,
 			'optionscode' => 'forumselect',
+			'value'       => '',
+		),
+		'opcanclosethread_auth_ugs' => array(
+			'title'       => $lang->opcct_setting_auth_ugs_title,
+			'description' => $lang->opcct_setting_auth_ugs_desc,
+			'optionscode' => 'groupselect',
 			'value'       => '',
 		),
 	);
@@ -320,6 +326,8 @@ function opcanclosethread_hookin__showthread_end() {
 	     in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
 	    )
 	    &&
+	    is_member($mybb->settings['opcanclosethread_auth_ugs'])
+	    &&
 	    $mybb->user['uid'] == $thread['uid']
 	    &&
 	    $thread['visible'] != -1
@@ -376,6 +384,8 @@ function opcanclosethread_hookin__datahandler_post_insert_thread_end($postHandle
 	     ||
 	     in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
 	    )
+	    &&
+	    is_member($mybb->settings['opcanclosethread_auth_ugs'])
 	   ) {
 		$lang->load('moderation');
 
@@ -399,6 +409,8 @@ function opcanclosethread_hookin__datahandler_post_insert_or_update_post_end($po
 	if ($mybb->settings['opcanclosethread_opclosable_forums'] == -1
 	    ||
 	    in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
+	    &&
+	    is_member($mybb->settings['opcanclosethread_auth_ugs'])
 	   ) {
 		if ($mybb->user['uid'] == $thread['uid']
 		    &&
@@ -451,6 +463,8 @@ function opcanclosethread_hookin__moderation_start() {
 		      ||
 		      in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
 		     )
+		    ||
+		    !is_member($mybb->settings['opcanclosethread_auth_ugs'])
 		   ) {
 			error($lang->opcct_err_no_close_right_in_forum, $lang->error);
 		}
@@ -505,6 +519,8 @@ function opcanclosethread_hookin__editpost_end() {
 	     ||
 	     in_array($fid, explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
 	    )
+	    &&
+	    is_member($mybb->settings['opcanclosethread_auth_ugs'])
 	   ) {
 		$lang->load('newthread');
 

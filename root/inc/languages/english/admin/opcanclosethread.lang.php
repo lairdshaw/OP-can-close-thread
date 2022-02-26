@@ -7,7 +7,9 @@ $l['opcct_settings_title'] = 'OP Can Close Thread';
 $l['opcct_settings_desc' ] = 'Settings for the OP Can Close Thread plugin.';
 
 $l['opcct_setting_opclosable_forums_title'] = 'Original poster-closable forums';
-$l['opcct_setting_opclosable_forums_desc' ] = 'Select the forums the threads of which the original poster (OP) aka thread author is permitted to close/reopen (without needing to be a moderator).';
+$l['opcct_setting_opclosable_forums_desc' ] = 'Select the forums the threads of which the original poster (OP) aka thread author is permitted to close/reopen (without needing to be a moderator), so long as they are a member of the group(s) selected below.';
+$l['opcct_setting_auth_ugs_title'] = 'Authorised usergroups';
+$l['opcct_setting_auth_ugs_desc' ] = 'Select the usergroups which can close threads in the forums selected above.';
 
 $l['opcct_all_patched'] = 'All necessary patches have automatically been applied to the following file(s) (where they actually exist): {1}. To auto-revert them, uninstall this plugin.';
 $l['opcct_unwritable' ] = 'The following file(s) is/are not writable by your web server, and patches could not be auto-applied to it/them: {1}. Please grant your web server write permissions on that/those file(s). ';
