@@ -92,7 +92,7 @@ function opcanclosethread_info() {
 		'description'   => $lang->opcct_desc,
 		'author'        => 'Laird Shaw',
 		'authorsite'    => 'https://creativeandcritical.net/',
-		'version'       => '1.2.1',
+		'version'       => '1.3.0',
 		'codename'      => 'opcanclosethread',
 		'compatibility' => '18*'
 	);
@@ -159,6 +159,12 @@ function opcanclosethread_install() {
 			'description' => $lang->opcct_setting_auth_ugs_desc,
 			'optionscode' => 'groupselect',
 			'value'       => '',
+		),
+		'opcanclosethread_autoprefix' => array(
+			'title'       => $lang->opcct_setting_autoprefix_title,
+			'description' => $lang->opcct_setting_autoprefix_desc,
+			'optionscode' => 'prefixselect',
+			'value'        => '',
 		),
 	);
 
@@ -277,6 +283,35 @@ function opcct_can_edit_thread($thread, $uid = -1) {
 	return $thread['opcct_closed_by_author'] == 1 && $uid == $thread['uid'] && ($mybb->settings['opcanclosethread_opclosable_forums'] == -1 || in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))) && is_member($mybb->settings['opcanclosethread_auth_ugs']);
 }
 
+function opcct_get_autoprefix($fid) {
+	global $mybb;
+
+	$ret = 0;
+	$set_pfxes = $mybb->settings['opcanclosethread_autoprefix'];
+	if (!empty($set_pfxes)) {
+		$prefix_cache = build_prefixes();
+		if (is_array($prefix_cache)) {
+			ksort($prefix_cache);
+			if ($set_pfxes == -1) {
+				$set_pfxes_arr = array_keys($prefix_cache);
+			} else	$set_pfxes_arr = array_map('trim', explode(',', $set_pfxes));
+			foreach ($set_pfxes_arr as $pfxid) {
+				if (array_key_exists($pfxid, $prefix_cache)) {
+					if ($prefix_cache[$pfxid]['forums'] == -1
+					    ||
+					    in_array($fid, array_map('trim', explode(',', $prefix_cache[$pfxid]['forums'])))
+					   ) {
+						$ret = $pfxid;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	return $ret;
+}
+
 // Show the "Close Thread" checkbox when starting a thread in a forum stipulated
 // in this plugin's settings.
 function opcanclosethread_hookin__newthread_or_newreply_end() {
@@ -392,7 +427,12 @@ function opcanclosethread_hookin__datahandler_post_insert_thread_end($postHandle
 		$modlogdata['fid'] = $thread['fid'];
 		$modlogdata['tid'] = $postHandler->tid;
 		log_moderator_action($modlogdata, $lang->thread_closed);
-		$db->update_query('threads', array('closed' => 1, 'opcct_closed_by_author' => 1), "tid='{$postHandler->tid}'");
+		$fields = array('closed' => 1, 'opcct_closed_by_author' => 1);
+		$prefix = opcct_get_autoprefix($thread['fid']);
+		if ($prefix) {
+			$fields['prefix'] = $prefix;
+		}
+		$db->update_query('threads', $fields, "tid='{$postHandler->tid}'");
 	}
 }
 
@@ -426,7 +466,12 @@ function opcanclosethread_hookin__datahandler_post_insert_or_update_post_end($po
 
 			if (!empty($modoptions['closethread']) && $thread['closed'] != 1) {
 				log_moderator_action($modlogdata, $lang->thread_closed);
-				$db->update_query('threads', array('closed' => 1, 'opcct_closed_by_author' => 1), "tid='{$thread['tid']}'");
+				$fields = array('closed' => 1, 'opcct_closed_by_author' => 1);
+				$prefix = opcct_get_autoprefix($thread['fid']);
+				if ($prefix) {
+					$fields['prefix'] = $prefix;
+				}
+				$db->update_query('threads', $fields, "tid='{$thread['tid']}'");
 				$postHandler->return_values['closed'] = 1;
 			} else if (empty($modoptions['closethread']) && $thread['closed'] == 1 && $thread['opcct_closed_by_author'] == 1) {
 				log_moderator_action($modlogdata, $lang->thread_opened);
@@ -487,7 +532,12 @@ function opcanclosethread_hookin__moderation_start() {
 		} else if ($thread['closed'] == 0) {
 			$openclose = $lang->closed;
 			$redirect = $lang->redirect_closethread;
-			$db->update_query('threads', array('closed' => 1, 'opcct_closed_by_author' => 1), "tid='{$tid}'");
+			$fields = array('closed' => 1, 'opcct_closed_by_author' => 1);
+			$prefix = opcct_get_autoprefix($fid);
+			if ($prefix) {
+				$fields['prefix'] = $prefix;
+			}
+			$db->update_query('threads', $fields, "tid='{$tid}'");
 		}
 		$lang->mod_process = $lang->sprintf($lang->mod_process, $openclose);
 

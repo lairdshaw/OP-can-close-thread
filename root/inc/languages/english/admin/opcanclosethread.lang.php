@@ -10,6 +10,8 @@ $l['opcct_setting_opclosable_forums_title'] = 'Original poster-closable forums';
 $l['opcct_setting_opclosable_forums_desc' ] = 'Select the forums the threads of which the original poster (OP) aka thread author is permitted to close/reopen (without needing to be a moderator), so long as they are a member of the group(s) selected below.';
 $l['opcct_setting_auth_ugs_title'] = 'Authorised usergroups';
 $l['opcct_setting_auth_ugs_desc' ] = 'Select the usergroups which can close threads in the forums selected above.';
+$l['opcct_setting_autoprefix_title'] = 'Auto-prefix';
+$l['opcct_setting_autoprefix_desc' ] = 'Select any prefix that should be auto-applied to a thread when it is closed by its author. Note: if you select more than one prefix, the one with the lowest ID which is authorised for the forum of a thread being closed by its author will be used. Usergroup permissions for prefixes are ignored.';
 
 $l['opcct_all_patched'] = 'All necessary patches have automatically been applied to the following file(s) (where they actually exist): {1}. To auto-revert them, uninstall this plugin.';
 $l['opcct_unwritable' ] = 'The following file(s) is/are not writable by your web server, and patches could not be auto-applied to it/them: {1}. Please grant your web server write permissions on that/those file(s). ';
