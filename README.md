@@ -38,7 +38,7 @@ OP Can Close Thread is licensed under the GPL v3.
 
 ## Author
 
-[Laird Shaw](https://creativeandcritical.net/)
+[Laird Shaw](https://creativeandcritical.net/) as part of the unofficial [MyBB Group](https://mybb.group/)
 
 ## Credits
 

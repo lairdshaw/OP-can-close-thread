@@ -90,8 +90,8 @@ function opcanclosethread_info() {
 	$info = array(
 		'name'          => $lang->opcct_name,
 		'description'   => $lang->opcct_desc,
-		'author'        => 'Laird Shaw',
-		'authorsite'    => 'https://creativeandcritical.net/',
+		'author'        => 'Laird Shaw as part of the unofficial MyBB Group',
+		'authorsite'    => 'https://mybb.group/',
 		'version'       => '1.3.0',
 		'codename'      => 'opcanclosethread',
 		'compatibility' => '18*'
