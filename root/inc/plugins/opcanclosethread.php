@@ -371,8 +371,8 @@ function opcanclosethread_hookin__showthread_end() {
 	   ) {
 		$lang->load('opcanclosethread');
 		if (($thread['closed'] != 1 || $thread['opcct_closed_by_author'] == 1)
-	            &&
-	            !empty($quickreply)
+		    &&
+		    !empty($quickreply)
 		   ) {
 			if (!isset($closeoption)) {
 				$closeoption = '';
