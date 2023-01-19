@@ -366,13 +366,13 @@ function opcanclosethread_hookin__showthread_end() {
 	    $mybb->user['uid'] == $thread['uid']
 	    &&
 	    $thread['visible'] != -1
-	    &&
-	    !is_moderator($thread['fid'], 'canopenclosethreads')
 	   ) {
 		$lang->load('opcanclosethread');
 		if (($thread['closed'] != 1 || $thread['opcct_closed_by_author'] == 1)
 		    &&
 		    !empty($quickreply)
+		    &&
+		    !is_moderator($thread['fid'], 'canopenclosethreads')
 		   ) {
 			if (!isset($closeoption)) {
 				$closeoption = '';
