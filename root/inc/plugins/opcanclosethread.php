@@ -529,7 +529,7 @@ function opcanclosethread_hookin__moderation_start() {
 			$openclose = $lang->opened;
 			$redirect = $lang->redirect_openthread;
 			$moderation->open_threads($tid);
-		} else if ($thread['closed'] == 0) {
+		} else if ($thread['closed'] != 1) {
 			$openclose = $lang->closed;
 			$redirect = $lang->redirect_closethread;
 			$fields = array('closed' => 1, 'opcct_closed_by_author' => 1);
@@ -558,7 +558,7 @@ function opcanclosethread_hookin__editpost_end() {
 	global $mybb, $lang, $templates, $thread, $modoptions, $fid, $bgcolor, $bgcolor2;
 
 	$modoptions = '';
-	if (($thread['closed'] == 0
+	if (($thread['closed'] != 1
 	     ||
 	     $thread['opcct_closed_by_author'] == 1
 	    )
