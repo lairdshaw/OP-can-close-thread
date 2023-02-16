@@ -406,7 +406,7 @@ function opcanclosethread_hookin__datahandler_post_insert_thread_end($postHandle
 
 	$thread = $postHandler->data;
 
-	if (!$thread['savedraft']
+	if (empty($thread['savedraft'])
 	    &&
 	    (!is_moderator($thread['fid'], '', $thread['uid'])
 	     ||
@@ -454,7 +454,7 @@ function opcanclosethread_hookin__datahandler_post_insert_or_update_post_end($po
 	   ) {
 		if ($mybb->user['uid'] == $thread['uid']
 		    &&
-		    !$post['savedraft']
+		    empty($post['savedraft'])
 		    &&
 		    !is_moderator($post['fid'], 'canopenclosethreads', $post['uid'])
 		   ) {
@@ -481,7 +481,7 @@ function opcanclosethread_hookin__datahandler_post_insert_or_update_post_end($po
 		}
 	}
 
-	if (!$post['savedraft'] && isset($post['modoptions']) && empty($modoptions['closethread']) && $thread['closed'] == 1 && is_moderator($post['fid'], 'canopenclosethreads', $post['uid'])) {
+	if (empty($post['savedraft']) && isset($post['modoptions']) && empty($modoptions['closethread']) && $thread['closed'] == 1 && is_moderator($post['fid'], 'canopenclosethreads', $post['uid'])) {
 		$db->update_query('threads', array('opcct_closed_by_author' => 0), "tid = {$thread['tid']}");
 	}
 }
