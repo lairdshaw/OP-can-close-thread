@@ -340,7 +340,7 @@ function opcanclosethread_hookin__newthread_or_newreply_end() {
 			$closecheck = !empty($modopts['closethread']) ? 'checked="checked"' : '';
 		} else if (!empty($thread) && $thread['closed']) {
 			$closecheck = 'checked="checked"';
-		}
+		} else	$closecheck = '';
 		eval('$closeoption .= "'.$templates->get('newreply_modoptions_close').'";');
 		eval('$modoptions = "'.$templates->get('newreply_modoptions').'";');
 	}
