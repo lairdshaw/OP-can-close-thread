@@ -520,7 +520,6 @@ function opcanclosethread_hookin__moderation_start() {
 		$modlogdata['tid'] = $tid;
 		$modlogdata['fid'] = $fid;
 
-		$moderation = new Moderation;
 		if ($thread['visible'] == -1) {
 			error($lang->error_thread_deleted, $lang->error);
 		}
@@ -531,6 +530,7 @@ function opcanclosethread_hookin__moderation_start() {
 			}
 			$openclose = $lang->opened;
 			$redirect = $lang->redirect_openthread;
+			$moderation = new Moderation;
 			$moderation->open_threads($tid);
 		} else {
 			$openclose = $lang->closed;
