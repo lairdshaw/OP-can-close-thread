@@ -166,6 +166,12 @@ function opcanclosethread_install() {
 			'optionscode' => 'prefixselect',
 			'value'        => '',
 		),
+		'opcanclosethread_prevent_reopen' => array(
+			'title'       => $lang->opcct_setting_prevent_reopen_title,
+			'description' => $lang->opcct_setting_prevent_reopen_desc,
+			'optionscode' => 'yesno',
+			'value'       => '0',
+		),
 	);
 
 	$disporder = 1;
@@ -312,8 +318,8 @@ function opcct_get_autoprefix($fid) {
 	return $ret;
 }
 
-// Show the "Close Thread" checkbox when starting a thread in a forum stipulated
-// in this plugin's settings.
+// Where appropriate, show the "Close Thread" checkbox to the thread author
+// when starting or replying to a thread.
 function opcanclosethread_hookin__newthread_or_newreply_end() {
 	global $modoptions, $bgcolor, $stickoption, $closeoption, $mybb, $templates, $lang, $fid, $thread;
 
@@ -325,6 +331,8 @@ function opcanclosethread_hookin__newthread_or_newreply_end() {
 	    is_member($mybb->settings['opcanclosethread_auth_ugs'])
 	    &&
 	    !is_moderator($fid, 'canopenclosethreads')
+	    &&
+	    !(!empty($thread['closed']) && $mybb->settings['opcanclosethread_prevent_reopen'])
 	   ) {
 		if (!empty($mybb->input['previewpost']) || $mybb->get_input('submit')) {
 			$modopts = $mybb->get_input('modoptions', MyBB::INPUT_ARRAY);
@@ -337,13 +345,10 @@ function opcanclosethread_hookin__newthread_or_newreply_end() {
 	}
 }
 
-// Show the "Close Thread" checkbox in the quick reply box when viewing a thread
-// if the current user is the thread's author, and not a moderator, in a forum
-// stipulated in this plugin's settings.
-//
-// Also in that same scenario show the "[Close/Open] Thread" button top and bottom
-// of page beside the "New Reply" button, and restore the "New Reply" button from
-// its "Thread Closed" variant as necessary.
+// Where appropriate, show the "Close Thread" checkbox to thread authors in the quick reply box
+// when viewing a thread, and show the "[Close/Open] Thread" button top and bottom of page
+// beside the "New Reply" button. Where appropriate, restore the "New Reply" button from
+// its "Thread Closed" variant.
 function opcanclosethread_hookin__showthread_end() {
 	global $mybb, $templates, $lang, $theme, $moderation_notice, $tid, $reply_subject, $posthash, $last_pid, $page, $collapsedthead, $collapsedimg, $expaltext, $collapsed, $trow, $option_signature, $closeoption, $captcha, $thread, $quickreply, $opcct_btn, $newreply;
 
@@ -359,7 +364,10 @@ function opcanclosethread_hookin__showthread_end() {
 	    $thread['visible'] != -1
 	   ) {
 		$lang->load('opcanclosethread');
-		if (($thread['closed'] != 1 || $thread['opcct_closed_by_author'] == 1)
+		if (($thread['closed'] != 1
+		     ||
+		     $thread['opcct_closed_by_author'] == 1 && !$mybb->settings['opcanclosethread_prevent_reopen']
+		    )
 		    &&
 		    !empty($quickreply)
 		    &&
@@ -374,13 +382,12 @@ function opcanclosethread_hookin__showthread_end() {
 			eval('$quickreply = "'.$templates->get('showthread_quickreply').'";');
 		}
 
-		$caption = '';
-		$opcct_btn = '';
-		if ($thread['closed'] == 1 && $thread['opcct_closed_by_author'] == 1) {
-			$caption = $lang->opcct_open_thread;
-		} else if ($thread['closed'] != 1) {
-			$caption = $lang->opcct_close_thread;
-		}
+		$caption = $opcct_btn = '';
+		if ($thread['closed'] == 1) {
+			if ($thread['opcct_closed_by_author'] == 1 && !$mybb->settings['opcanclosethread_prevent_reopen']) {
+				$caption = $lang->opcct_open_thread;
+			}
+		} else	$caption = $lang->opcct_close_thread;
 		if ($caption) {
 			$opcct_btn = eval($templates->render('opcanclosethread_openclose_button'));
 		}
@@ -424,10 +431,10 @@ function opcanclosethread_hookin__datahandler_post_insert_thread_end($postHandle
 	}
 }
 
-// Process the "Close Thread" checkbox, on reply to a thread by its author in a
-// forum stipulated in this plugin's settings, by closing the thread, but only if this
-// would not have already occurred in the data handler, which it would have if
-// the thread's author is a moderator with the right to open and close threads.
+// Where appropriate, process the "Close Thread" checkbox on reply to a thread by its author,
+// by closing/opening the thread, but only if this would not have already occurred in the data
+// handler, which it would have if the thread's author is a moderator with the right to open
+// and close threads.
 function opcanclosethread_hookin__datahandler_post_insert_or_update_post_end($postHandler) {
 	global $mybb, $db, $lang;
 
@@ -461,7 +468,7 @@ function opcanclosethread_hookin__datahandler_post_insert_or_update_post_end($po
 				}
 				$db->update_query('threads', $fields, "tid='{$thread['tid']}'");
 				$postHandler->return_values['closed'] = 1;
-			} else if (empty($modoptions['closethread']) && $thread['closed'] == 1 && $thread['opcct_closed_by_author'] == 1) {
+			} else if (empty($modoptions['closethread']) && $thread['closed'] == 1 && $thread['opcct_closed_by_author'] == 1 && !$mybb->settings['opcanclosethread_prevent_reopen']) {
 				log_moderator_action($modlogdata, $lang->thread_opened);
 				$db->update_query('threads', array('closed' => 0, 'opcct_closed_by_author' => 0), "tid='{$thread['tid']}'");
 				$postHandler->return_values['closed'] = 0;
@@ -474,9 +481,8 @@ function opcanclosethread_hookin__datahandler_post_insert_or_update_post_end($po
 	}
 }
 
-// Toggle the opening/closing of a thread by its author in a forum stipulated
-// in this plugin's settings when submitted by the "[Open/Close] Thread" button
-// (within a "post" form) at the top or bottom of a thread page.
+// Where appropriate, toggle the opening/closing of a thread by its author upon clicking
+// the "[Open/Close] Thread" button (within a POST form) at the top or bottom of a thread page.
 function opcanclosethread_hookin__moderation_start() {
 	global $mybb, $lang, $db;
 
@@ -515,6 +521,8 @@ function opcanclosethread_hookin__moderation_start() {
 		if ($thread['closed'] == 1) {
 			if ($thread['opcct_closed_by_author'] != 1) {
 				error($lang->opcct_err_not_closed_by_author, $lang->error);
+			} else if (!$mybb->settings['opcanclosethread_prevent_reopen']) {
+				error($lang->opcct_err_reopening_prevented, $lang->error);
 			}
 			$openclose = $lang->opened;
 			$redirect = $lang->redirect_openthread;
@@ -551,7 +559,10 @@ function opcanclosethread_hookin__editpost_end() {
 	$modoptions = '';
 	if (($thread['closed'] != 1
 	     ||
-	     $thread['opcct_closed_by_author'] == 1
+	     ($thread['opcct_closed_by_author'] == 1
+	      &&
+	      !$mybb->settings['opcanclosethread_prevent_reopen']
+	     )
 	    )
 	    &&
 	    $mybb->user['uid'] == $thread['uid']
