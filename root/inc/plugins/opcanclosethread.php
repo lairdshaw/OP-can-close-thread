@@ -324,24 +324,15 @@ function opcanclosethread_hookin__newthread_or_newreply_end() {
 	    &&
 	    is_member($mybb->settings['opcanclosethread_auth_ugs'])
 	    &&
-	    (!is_moderator($fid)
-	     ||
-	     !is_moderator($fid, 'canopenclosethreads')
-	    )
+	    !is_moderator($fid, 'canopenclosethreads')
 	   ) {
-		if (!isset($closeoption)) {
-			$closeoption = '';
-		}
-		if (!isset($modoptions)) {
-			$modoptions = '';
-		}
 		if (!empty($mybb->input['previewpost']) || $mybb->get_input('submit')) {
 			$modopts = $mybb->get_input('modoptions', MyBB::INPUT_ARRAY);
 			$closecheck = !empty($modopts['closethread']) ? 'checked="checked"' : '';
 		} else if (!empty($thread) && $thread['closed']) {
 			$closecheck = 'checked="checked"';
 		} else	$closecheck = '';
-		eval('$closeoption .= "'.$templates->get('newreply_modoptions_close').'";');
+		eval('$closeoption = "'.$templates->get('newreply_modoptions_close').'";');
 		eval('$modoptions = "'.$templates->get('newreply_modoptions').'";');
 	}
 }
@@ -408,10 +399,7 @@ function opcanclosethread_hookin__datahandler_post_insert_thread_end($postHandle
 
 	if (empty($thread['savedraft'])
 	    &&
-	    (!is_moderator($thread['fid'], '', $thread['uid'])
-	     ||
-	     !is_moderator($thread['fid'], 'canopenclosethreads', $thread['uid'])
-	    )
+	    !is_moderator($thread['fid'], 'canopenclosethreads', $thread['uid'])
 	    &&
 	    !empty($thread['modoptions']['closethread'])
 	    &&
