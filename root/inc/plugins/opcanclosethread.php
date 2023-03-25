@@ -337,7 +337,7 @@ function opcanclosethread_hookin__newthread_or_newreply_end() {
 		if (!empty($mybb->input['previewpost']) || $mybb->get_input('submit')) {
 			$modopts = $mybb->get_input('modoptions', MyBB::INPUT_ARRAY);
 			$closecheck = !empty($modopts['closethread']) ? 'checked="checked"' : '';
-		} else if (!empty($thread) && $thread['closed']) {
+		} else if (!empty($thread['closed'])) {
 			$closecheck = 'checked="checked"';
 		} else	$closecheck = '';
 		eval('$closeoption = "'.$templates->get('newreply_modoptions_close').'";');
