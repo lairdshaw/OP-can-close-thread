@@ -383,15 +383,17 @@ function opcanclosethread_hookin__showthread_end() {
 		}
 
 		$caption = $opcct_btn = '';
-		if ($thread['closed'] == 1) {
-			if ($thread['opcct_closed_by_author'] == 1 && !$mybb->settings['opcanclosethread_prevent_reopen']) {
+		if ($thread['closed'] != 1) {
+			$caption = $lang->opcct_close_thread;
+		} else if ($thread['opcct_closed_by_author'] == 1) {
+			$newreply = eval($templates->render('showthread_newreply'));
+			if (!$mybb->settings['opcanclosethread_prevent_reopen']) {
 				$caption = $lang->opcct_open_thread;
 			}
-		} else	$caption = $lang->opcct_close_thread;
+		}
 		if ($caption) {
 			$opcct_btn = eval($templates->render('opcanclosethread_openclose_button'));
 		}
-		$newreply = eval($templates->render('showthread_newreply'));
 	}
 }
 
