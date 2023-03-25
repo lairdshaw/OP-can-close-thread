@@ -525,11 +525,14 @@ function opcanclosethread_hookin__moderation_start() {
 			error($lang->error_thread_deleted, $lang->error);
 		}
 
-		if ($thread['closed'] == 1 && $thread['opcct_closed_by_author'] == 1) {
+		if ($thread['closed'] == 1) {
+			if ($thread['opcct_closed_by_author'] != 1) {
+				error_no_permission();
+			}
 			$openclose = $lang->opened;
 			$redirect = $lang->redirect_openthread;
 			$moderation->open_threads($tid);
-		} else if ($thread['closed'] != 1) {
+		} else {
 			$openclose = $lang->closed;
 			$redirect = $lang->redirect_closethread;
 			$fields = array('closed' => 1, 'opcct_closed_by_author' => 1);
