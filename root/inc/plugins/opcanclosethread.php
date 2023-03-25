@@ -514,7 +514,7 @@ function opcanclosethread_hookin__moderation_start() {
 
 		if ($thread['closed'] == 1) {
 			if ($thread['opcct_closed_by_author'] != 1) {
-				error_no_permission();
+				error($lang->opcct_err_not_closed_by_author, $lang->error);
 			}
 			$openclose = $lang->opened;
 			$redirect = $lang->redirect_openthread;
