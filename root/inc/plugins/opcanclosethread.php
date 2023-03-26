@@ -167,6 +167,12 @@ function opcanclosethread_install() {
 			'optionscode' => 'prefixselect',
 			'value'        => '',
 		),
+		'opcanclosethread_rem_prefix_on_reopen' => array(
+			'title'       => $lang->opcct_setting_rem_prefix_on_reopen_title,
+			'description' => $lang->opcct_setting_rem_prefix_on_reopen_desc,
+			'optionscode' => 'yesno',
+			'value'       => '0',
+		),
 		'opcanclosethread_prevent_reopen' => array(
 			'title'       => $lang->opcct_setting_prevent_reopen_title,
 			'description' => $lang->opcct_setting_prevent_reopen_desc,
@@ -468,7 +474,11 @@ function opcanclosethread_hookin__datahandler_post_insert_or_update_or_merge($po
 				$postHandler->return_values['closed'] = 1;
 			} else if (empty($modoptions['closethread']) && $thread['closed'] == 1 && $thread['opcct_closed_by_author'] == 1 && !$mybb->settings['opcanclosethread_prevent_reopen']) {
 				log_moderator_action($modlogdata, $lang->thread_opened);
-				$db->update_query('threads', array('closed' => 0, 'opcct_closed_by_author' => 0), "tid='{$thread['tid']}'");
+				$fields = array('closed' => 0, 'opcct_closed_by_author' => 0);
+				if ($mybb->settings['opcanclosethread_rem_prefix_on_reopen']) {
+					$fields['prefix'] = 0;
+				}
+				$db->update_query('threads', $fields, "tid='{$thread['tid']}'");
 				$postHandler->return_values['closed'] = 0;
 			}
 		}
@@ -521,8 +531,10 @@ function opcanclosethread_hookin__moderation_start() {
 			}
 			$openclose = $lang->opened;
 			$redirect = $lang->redirect_openthread;
-			$moderation = new Moderation;
-			$moderation->open_threads($tid);
+			$fields = array('closed' => 0, 'opcct_closed_by_author' => 0);
+			if ($mybb->settings['opcanclosethread_rem_prefix_on_reopen']) {
+				$fields['prefix'] = 0;
+			}
 		} else {
 			$openclose = $lang->closed;
 			$redirect = $lang->redirect_closethread;
@@ -531,8 +543,9 @@ function opcanclosethread_hookin__moderation_start() {
 			if ($prefix) {
 				$fields['prefix'] = $prefix;
 			}
-			$db->update_query('threads', $fields, "tid='{$tid}'");
 		}
+		$db->update_query('threads', $fields, "tid='{$tid}'");
+
 		$lang->mod_process = $lang->sprintf($lang->mod_process, $openclose);
 
 		log_moderator_action($modlogdata, $lang->mod_process);

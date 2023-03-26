@@ -12,6 +12,8 @@ $l['opcct_setting_auth_ugs_title'] = 'Authorised usergroups';
 $l['opcct_setting_auth_ugs_desc' ] = 'Select the usergroups which can close threads in the forums selected above.';
 $l['opcct_setting_autoprefix_title'] = 'Auto-prefix';
 $l['opcct_setting_autoprefix_desc' ] = 'Select any prefix that should be auto-applied to a thread when it is closed by its author. Note: if you select more than one prefix, the one with the lowest ID which is authorised for the forum of a thread being closed by its author will be used. Usergroup permissions for prefixes are ignored.';
+$l['opcct_setting_rem_prefix_on_reopen_title'] = 'Remove prefix on reopening?';
+$l['opcct_setting_rem_prefix_on_reopen_desc'] = 'Select "Yes" to remove the thread\'s prefix when its author reopens it. Note that the prefix is removed unconditionally, that is, regardless of whether it was auto-added by this plugin or added manually.';
 $l['opcct_setting_prevent_reopen_title'] = 'Block reopening?';
 $l['opcct_setting_prevent_reopen_desc'] = 'Select "Yes" to prevent thread authors from reopening threads they\'ve closed';
 
