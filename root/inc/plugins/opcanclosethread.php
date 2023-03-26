@@ -443,9 +443,10 @@ function opcanclosethread_hookin__datahandler_post_insert_or_update_post_end($po
 	$post = $postHandler->data;
 	$thread = get_thread($post['tid']);
 
-	if ($mybb->settings['opcanclosethread_opclosable_forums'] == -1
-	    ||
-	    in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
+	if (($mybb->settings['opcanclosethread_opclosable_forums'] == -1
+	     ||
+	     in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
+	    )
 	    &&
 	    is_member($mybb->settings['opcanclosethread_auth_ugs'])
 	   ) {
@@ -523,7 +524,7 @@ function opcanclosethread_hookin__moderation_start() {
 		if ($thread['closed'] == 1) {
 			if ($thread['opcct_closed_by_author'] != 1) {
 				error($lang->opcct_err_not_closed_by_author, $lang->error);
-			} else if (!$mybb->settings['opcanclosethread_prevent_reopen']) {
+			} else if ($mybb->settings['opcanclosethread_prevent_reopen']) {
 				error($lang->opcct_err_reopening_prevented, $lang->error);
 			}
 			$openclose = $lang->opened;
