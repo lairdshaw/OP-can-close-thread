@@ -93,7 +93,7 @@ function opcanclosethread_info() {
 		'description'   => $lang->opcct_desc,
 		'author'        => 'Laird Shaw as part of the unofficial MyBB Group',
 		'authorsite'    => 'https://mybb.group/',
-		'version'       => '1.3.1',
+		'version'       => '1.4.0',
 		'codename'      => 'opcanclosethread',
 		'compatibility' => '18*'
 	);
