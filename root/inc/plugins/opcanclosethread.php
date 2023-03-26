@@ -279,6 +279,12 @@ function opcanclosethread_deactivate() {
 	find_replace_templatesets('showthread', '(\\{\\$opcct_btn\\})', '', 0);
 }
 
+function opcct_is_applicable_forum($fid) {
+	global $mybb;
+
+	return $mybb->settings['opcanclosethread_opclosable_forums'] == -1 || in_array($fid, explode(',', $mybb->settings['opcanclosethread_opclosable_forums']));
+}
+
 function opcct_can_edit_thread($thread, $uid = -1) {
 	global $mybb;
 
@@ -286,7 +292,7 @@ function opcct_can_edit_thread($thread, $uid = -1) {
 		$uid = $mybb->user['uid'];
 	}
 
-	return $thread['opcct_closed_by_author'] == 1 && $uid == $thread['uid'] && ($mybb->settings['opcanclosethread_opclosable_forums'] == -1 || in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))) && is_member($mybb->settings['opcanclosethread_auth_ugs']);
+	return $thread['opcct_closed_by_author'] == 1 && $uid == $thread['uid'] && opcct_is_applicable_forum($thread['fid']) && is_member($mybb->settings['opcanclosethread_auth_ugs']);
 }
 
 function opcct_get_autoprefix($fid) {
@@ -323,10 +329,7 @@ function opcct_get_autoprefix($fid) {
 function opcanclosethread_hookin__newthread_or_newreply_end() {
 	global $modoptions, $bgcolor, $stickoption, $closeoption, $mybb, $templates, $lang, $fid, $thread;
 
-	if (($mybb->settings['opcanclosethread_opclosable_forums'] == -1
-	     ||
-	     in_array($fid, explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
-	    )
+	if (opcct_is_applicable_forum($fid)
 	    &&
 	    is_member($mybb->settings['opcanclosethread_auth_ugs'])
 	    &&
@@ -352,10 +355,7 @@ function opcanclosethread_hookin__newthread_or_newreply_end() {
 function opcanclosethread_hookin__showthread_end() {
 	global $mybb, $templates, $lang, $theme, $moderation_notice, $tid, $reply_subject, $posthash, $last_pid, $page, $collapsedthead, $collapsedimg, $expaltext, $collapsed, $trow, $option_signature, $closeoption, $captcha, $thread, $quickreply, $opcct_btn, $newreply;
 
-	if (($mybb->settings['opcanclosethread_opclosable_forums'] == -1
-	     ||
-	     in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
-	    )
+	if (opcct_is_applicable_forum($thread['fid'])
 	    &&
 	    is_member($mybb->settings['opcanclosethread_auth_ugs'])
 	    &&
@@ -412,10 +412,7 @@ function opcanclosethread_hookin__datahandler_post_insert_thread_end($postHandle
 	    &&
 	    !empty($thread['modoptions']['closethread'])
 	    &&
-	    ($mybb->settings['opcanclosethread_opclosable_forums'] == -1
-	     ||
-	     in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
-	    )
+	    opcct_is_applicable_forum($thread['fid'])
 	    &&
 	    is_member($mybb->settings['opcanclosethread_auth_ugs'])
 	   ) {
@@ -443,10 +440,7 @@ function opcanclosethread_hookin__datahandler_post_insert_or_update_post_end($po
 	$post = $postHandler->data;
 	$thread = get_thread($post['tid']);
 
-	if (($mybb->settings['opcanclosethread_opclosable_forums'] == -1
-	     ||
-	     in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
-	    )
+	if (opcct_is_applicable_forum($thread['fid'])
 	    &&
 	    is_member($mybb->settings['opcanclosethread_auth_ugs'])
 	   ) {
@@ -501,10 +495,7 @@ function opcanclosethread_hookin__moderation_start() {
 			error($lang->error_invalidthread, $lang->error);
 		}
 		$fid = $thread['fid'];
-		if (!($mybb->settings['opcanclosethread_opclosable_forums'] == -1
-		      ||
-		      in_array($thread['fid'], explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
-		     )
+		if (!opcct_is_applicable_forum($thread['fid'])
 		    ||
 		    !is_member($mybb->settings['opcanclosethread_auth_ugs'])
 		   ) {
@@ -570,10 +561,7 @@ function opcanclosethread_hookin__editpost_end() {
 	    &&
 	    $mybb->user['uid'] == $thread['uid']
 	    &&
-	    ($mybb->settings['opcanclosethread_opclosable_forums'] == -1
-	     ||
-	     in_array($fid, explode(',', $mybb->settings['opcanclosethread_opclosable_forums']))
-	    )
+	    opcct_is_applicable_forum($fid)
 	    &&
 	    is_member($mybb->settings['opcanclosethread_auth_ugs'])
 	   ) {
