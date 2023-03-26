@@ -28,8 +28,9 @@ if (!defined('IN_ADMINCP')) {
 	$plugins->add_hook('newthread_end'                     , 'opcanclosethread_hookin__newthread_or_newreply_end'                 );
 	$plugins->add_hook('newreply_end'                      , 'opcanclosethread_hookin__newthread_or_newreply_end'                 );
 	$plugins->add_hook('datahandler_post_insert_thread_end', 'opcanclosethread_hookin__datahandler_post_insert_thread_end'        );
-	$plugins->add_hook('datahandler_post_insert_post_end'  , 'opcanclosethread_hookin__datahandler_post_insert_or_update_post_end');
-	$plugins->add_hook('datahandler_post_update_end'       , 'opcanclosethread_hookin__datahandler_post_insert_or_update_post_end');
+	$plugins->add_hook('datahandler_post_insert_post_end'  , 'opcanclosethread_hookin__datahandler_post_insert_or_update_or_merge');
+	$plugins->add_hook('datahandler_post_update_end'       , 'opcanclosethread_hookin__datahandler_post_insert_or_update_or_merge');
+	$plugins->add_hook('datahandler_post_insert_merge'     , 'opcanclosethread_hookin__datahandler_post_insert_or_update_or_merge');
 	$plugins->add_hook('moderation_start'                  , 'opcanclosethread_hookin__moderation_start'                          );
 	$plugins->add_hook('class_moderation_open_threads'     , 'opcanclosethread_hookin__class_moderation_open_threads'             );
 	$plugins->add_hook('editpost_end'                      , 'opcanclosethread_hookin__editpost_end'                              );
@@ -434,7 +435,7 @@ function opcanclosethread_hookin__datahandler_post_insert_thread_end($postHandle
 // by closing/opening the thread, but only if this would not have already occurred in the data
 // handler, which it would have if the thread's author is a moderator with the right to open
 // and close threads.
-function opcanclosethread_hookin__datahandler_post_insert_or_update_post_end($postHandler) {
+function opcanclosethread_hookin__datahandler_post_insert_or_update_or_merge($postHandler) {
 	global $mybb, $db, $lang;
 
 	$post = $postHandler->data;
