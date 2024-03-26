@@ -24,6 +24,7 @@ if (!defined('IN_MYBB')) {
 }
 
 if (!defined('IN_ADMINCP')) {
+	$plugins->add_hook('global_start'                      , 'opcanclosethread_hookin__global_start'                              );
 	$plugins->add_hook('showthread_end'                    , 'opcanclosethread_hookin__showthread_end'                            );
 	$plugins->add_hook('newthread_end'                     , 'opcanclosethread_hookin__newthread_or_newreply_end'                 );
 	$plugins->add_hook('newreply_end'                      , 'opcanclosethread_hookin__newthread_or_newreply_end'                 );
@@ -284,6 +285,17 @@ function opcanclosethread_deactivate() {
 	require_once MYBB_ROOT.'/inc/adminfunctions_templates.php';
 	find_replace_templatesets('editpost', '(\\r?\\n\\{\\$modoptions\\})', '', 0);
 	find_replace_templatesets('showthread', '(\\{\\$opcct_btn\\})', '', 0);
+}
+
+function opcanclosethread_hookin__global_start() {
+	if (THIS_SCRIPT == 'showthread.php') {
+		global $templatelist;
+
+		if (!empty($templatelist) && my_substr($templatelist, -1) != ',') {
+			$templatelist .= ",";
+		}
+		$templatelist .= 'opcanclosethread_openclose_button';
+	}
 }
 
 function opcct_is_applicable_forum($fid) {
